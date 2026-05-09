@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gameboy Style Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #000000;
+    font-family: 'Press Start 2P', cursive;
+  }
+
+  /* ── Style Switcher ── */
+  .style-switcher {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 100;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 4px;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .style-switcher a, .style-switcher button {
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 8px 18px;
+    border-radius: 100px;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.6);
+    background: transparent;
+    min-width: 90px;
+  }
+
+  .style-switcher .active {
+    background: rgba(255, 255, 255, 0.9);
+    color: #1c1c1e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .style-switcher .inactive-link:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .gameboy {
+    width: 320px;
+    background: #8bac0f;
+    border-radius: 10px 10px 40px 10px;
+    padding: 20px 20px 30px;
+    box-shadow:
+      inset -5px -5px 10px rgba(0,0,0,0.1),
+      inset 5px 5px 10px rgba(255,255,255,0.1),
+      0 10px 20px rgba(0,0,0,0.3);
+    border: 4px solid #0f380f;
+  }
+
+  .screen-bezel {
+    background: #555;
+    border-radius: 5px 5px 20px 5px;
+    padding: 15px 25px 25px;
+    margin-bottom: 20px;
+    border: 2px solid #333;
+  }
+
+  .screen {
+    background: #9bbc0f;
+    border: 2px solid #0f380f;
+    border-radius: 3px;
+    padding: 10px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .previous-operand {
+    color: #0f380f;
+    font-size: 10px;
+    min-height: 14px;
+    opacity: 0.7;
+    word-break: break-all;
+    display: none;
+  }
+
+  .current-operand {
+    color: #0f380f;
+    font-size: 20px;
+    word-break: break-all;
+    margin-top: 5px;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  button {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    padding: 12px 0;
+    border: 2px solid #0f380f;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #306230;
+    color: #8bac0f;
+    box-shadow: 0 4px 0 #0f380f;
+    transition: transform 0.05s, box-shadow 0.05s;
+  }
+
+  button:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #0f380f;
+  }
+
+  button.span-two {
+    grid-column: span 2;
+  }
+
+  button.ac, button.del {
+    background: #8b4513;
+    color: #fff;
+  }
+
+  button.equals {
+    background: #0f380f;
+    color: #9bbc0f;
+  }
+
+  button.operator {
+    background: #306230;
+    color: #9bbc0f;
+  }
+</style>
+</head>
+<body>
+
+<div class="style-switcher">
+    <a class="inactive-link" href="taschenrechner.html">Modern</a>
+    <button class="active">Game Boy</button>
+</div>
+
+<div class="gameboy">
+  <div class="screen-bezel">
+    <div class="screen">
+      <div class="previous-operand" data-previous></div>
+      <div class="current-operand" data-current>0</div>
+    </div>
+  </div>
+  <div class="buttons">
+    <button class="ac" data-all-clear>AC</button>
+    <button class="operator" data-brackets>( )</button>
+    <button class="operator" data-percent>%</button>
+    <button class="operator" data-operation>÷</button>
+
+    <button data-number>7</button>
+    <button data-number>8</button>
+    <button data-number>9</button>
+    <button class="operator" data-operation>×</button>
+
+    <button data-number>4</button>
+    <button data-number>5</button>
+    <button data-number>6</button>
+    <button class="operator" data-operation>−</button>
+
+    <button data-number>1</button>
+    <button data-number>2</button>
+    <button data-number>3</button>
+    <button class="operator" data-operation>+</button>
+
+    <button data-number>0</button>
+    <button data-number>.</button>
+    <button class="del" data-delete>⌫</button>
+    <button class="equals" data-equals>=</button>
+  </div>
+</div>
+
+<script>
+function isOperator(char) {
+  return ['+', '−', '×', '÷'].includes(char);
+}
+
+class Calculator {
+  constructor(currentElement, previousElement) {
+    this.currentElement = currentElement;
+    this.previousElement = previousElement;
+    this.reset();
+  }
+
+  reset() {
+    this.expression = '';
+    this.lastResult = false;
+    this.updateDisplay();
+  }
+
+  clear() {
+    this.reset();
+  }
+
+  delete() {
+    if (this.expression.length > 0) {
+      this.expression = this.expression.slice(0, -1);
+      this.lastResult = false;
+      this.updateDisplay();
+    }
+  }
+
+  append(value) {
+    if (this.lastResult && /[0-9.]/.test(value)) {
+      this.expression = '';
+    }
+    this.lastResult = false;
+
+    if (value === '.') {
+      const parts = this.expression.split(/[\+\−\×\÷\(\)]/);
+      const currentNum = parts[parts.length - 1] || '';
+      if (currentNum.includes('.')) return;
+    }
+
+    this.expression += value;
+    this.updateDisplay();
+  }
+
+  bracket() {
+    if (this.lastResult) {
+      this.expression = '';
+      this.lastResult = false;
+    }
+
+    const open = (this.expression.match(/\(/g) || []).length;
+    const close = (this.expression.match(/\)/g) || []).length;
+    const lastChar = this.expression.slice(-1);
+
+    if (open === close) {
+      if (/\d/.test(lastChar) || lastChar === ')') {
+        this.expression += '×';
+      }
+      this.expression += '(';
+    } else {
+      if (isOperator(lastChar) || lastChar === '(') {
+        this.expression += '(';
+      } else {
+        this.expression += ')';
+      }
+    }
+    this.updateDisplay();
+  }
+
+  percent() {
+    if (this.expression === '') return;
+    const lastChar = this.expression.slice(-1);
+    if (isOperator(lastChar) || lastChar === '(') return;
+    this.expression += '/100';
+    this.lastResult = false;
+    this.updateDisplay();
+  }
+
+  compute() {
+    if (this.expression === '') return;
+    try {
+      let expr = this.expression
+        .replace(/×/g, '*')
+        .replace(/÷/g, '/')
+        .replace(/−/g, '-')
+        .replace(/,/g, '.');
+
+      const openCount = (expr.match(/\(/g) || []).length;
+      const closeCount = (expr.match(/\)/g) || []).length;
+      expr += ')'.repeat(openCount - closeCount);
+
+      if (/[^0-9+\-*/().\s]/.test(expr)) throw new Error('Invalid');
+      if (!expr || expr.trim() === '') throw new Error('Empty');
+
+      const result = new Function('return (' + expr + ')')();
+      if (!isFinite(result)) throw new Error('Invalid');
+
+      let formatted = parseFloat(result.toPrecision(12));
+      this.expression = formatted.toString().replace('.', ',');
+      this.lastResult = true;
+    } catch (e) {
+      this.expression = 'Error';
+      this.lastResult = true;
+    }
+    this.updateDisplay();
+  }
+
+  updateDisplay() {
+    this.currentElement.innerText = this.expression || '0';
+    this.previousElement.innerText = '';
+  }
+}
+
+const calc = new Calculator(
+  document.querySelector('[data-current]'),
+  document.querySelector('[data-previous]')
+);
+
+document.querySelectorAll('[data-number]').forEach(btn => {
+  btn.addEventListener('click', () => calc.append(btn.innerText));
+});
+
+document.querySelectorAll('[data-operation]').forEach(btn => {
+  btn.addEventListener('click', () => calc.append(btn.innerText));
+});
+
+document.querySelector('[data-brackets]').addEventListener('click', () => calc.bracket());
+document.querySelector('[data-percent]').addEventListener('click', () => calc.percent());
+document.querySelector('[data-equals]').addEventListener('click', () => calc.compute());
+document.querySelector('[data-all-clear]').addEventListener('click', () => calc.clear());
+document.querySelector('[data-delete]').addEventListener('click', () => calc.delete());
+
+// Keyboard support
+document.addEventListener('keydown', (e) => {
+  if (e.key >= '0' && e.key <= '9' || e.key === '.') calc.append(e.key);
+  if (e.key === '+') calc.append('+');
+  if (e.key === '-') calc.append('−');
+  if (e.key === '*') calc.append('×');
+  if (e.key === '/') calc.append('÷');
+  if (e.key === '(' || e.key === ')') calc.bracket();
+  if (e.key === '%') calc.percent();
+  if (e.key === 'Enter' || e.key === '=') {
+    e.preventDefault();
+    calc.compute();
+  }
+  if (e.key === 'Backspace') calc.delete();
+  if (e.key === 'Escape') calc.clear();
+});
+</script>
+
+</body>
+</html>

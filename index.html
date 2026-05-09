@@ -20,6 +20,59 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
+        /* ── Style Switcher ── */
+        .style-switcher {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 100;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 4px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .style-switcher a, .style-switcher button {
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 100px;
+            transition: all 0.2s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.6);
+            background: transparent;
+            width: auto;
+            aspect-ratio: auto;
+            min-width: 90px;
+            height: auto;
+        }
+
+        .style-switcher .active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1c1c1e;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .style-switcher .inactive-link:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         .calculator {
             background: #000000;
             padding: 24px;
@@ -137,6 +190,11 @@
     </style>
 </head>
 <body>
+    <div class="style-switcher">
+        <button class="active">Modern</button>
+        <a class="inactive-link" href="gameboy-calculator.html">Game Boy</a>
+    </div>
+
     <div class="calculator">
         <div class="display">
             <div class="previous" id="previous"></div>
@@ -144,7 +202,7 @@
         </div>
         <div class="buttons">
             <button class="btn-action" onclick="clearAll()">AC</button>
-            <button class="btn-operator" onclick="appendParen()">()</button>
+            <button class="btn-operator" onclick="appendParen()">( )</button>
             <button class="btn-operator" onclick="percentage()">%</button>
             <button class="btn-operator" onclick="appendOperator('/')">÷</button>
 
