@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taschenrechner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .calculator {
+            background: #000000;
+            padding: 24px;
+            width: 360px;
+        }
+
+        .display {
+            padding: 40px 12px 20px;
+            text-align: right;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .display .previous {
+            color: #8e8e93;
+            font-size: 22px;
+            margin-bottom: 8px;
+            min-height: 28px;
+            word-break: break-all;
+        }
+
+        .display .current {
+            color: #ffffff;
+            font-size: 64px;
+            font-weight: 300;
+            word-break: break-all;
+            line-height: 1.1;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-size: 26px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
+            transition: all 0.1s ease;
+            font-weight: 400;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:active {
+            filter: brightness(1.2);
+        }
+
+        .btn-number {
+            background: #333333;
+            color: #ffffff;
+        }
+
+        .btn-number:hover {
+            background: #404040;
+        }
+
+        .btn-operator {
+            background: #4a5660;
+            color: #ffffff;
+            font-size: 26px;
+        }
+
+        .btn-operator:hover {
+            background: #5a6670;
+        }
+
+        .btn-operator.active {
+            background: #ffffff;
+            color: #4a5660;
+        }
+
+        .btn-action {
+            background: #0a84ff;
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .btn-action:hover {
+            background: #0071e3;
+        }
+
+        .btn-equals {
+            background: #c8a4d4;
+            color: #1c1c1e;
+            font-size: 30px;
+            font-weight: 500;
+        }
+
+        .btn-equals:hover {
+            background: #d8b4e2;
+        }
+
+        .btn-delete {
+            background: #333333;
+            color: #ffffff;
+            font-size: 22px;
+        }
+
+        .btn-delete:hover {
+            background: #404040;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="previous" id="previous"></div>
+            <div class="current" id="current">0</div>
+        </div>
+        <div class="buttons">
+            <button class="btn-action" onclick="clearAll()">AC</button>
+            <button class="btn-operator" onclick="appendParen()">()</button>
+            <button class="btn-operator" onclick="percentage()">%</button>
+            <button class="btn-operator" onclick="appendOperator('/')">÷</button>
+
+            <button class="btn-number" onclick="appendNumber('7')">7</button>
+            <button class="btn-number" onclick="appendNumber('8')">8</button>
+            <button class="btn-number" onclick="appendNumber('9')">9</button>
+            <button class="btn-operator" onclick="appendOperator('*')">×</button>
+
+            <button class="btn-number" onclick="appendNumber('4')">4</button>
+            <button class="btn-number" onclick="appendNumber('5')">5</button>
+            <button class="btn-number" onclick="appendNumber('6')">6</button>
+            <button class="btn-operator" onclick="appendOperator('-')">−</button>
+
+            <button class="btn-number" onclick="appendNumber('1')">1</button>
+            <button class="btn-number" onclick="appendNumber('2')">2</button>
+            <button class="btn-number" onclick="appendNumber('3')">3</button>
+            <button class="btn-operator" onclick="appendOperator('+')">+</button>
+
+            <button class="btn-number" onclick="appendNumber('0')">0</button>
+            <button class="btn-number" onclick="appendDecimal()">.</button>
+            <button class="btn-delete" onclick="deleteLast()">⌫</button>
+            <button class="btn-equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let expression = '0';
+        let resetNext = false;
+
+        const currentDisplay = document.getElementById('current');
+        const previousDisplay = document.getElementById('previous');
+
+        function updateDisplay() {
+            const display = expression
+                .replace(/\*/g, '×')
+                .replace(/\//g, '÷')
+                .replace(/-/g, '−');
+            currentDisplay.textContent = display;
+            previousDisplay.textContent = '';
+        }
+
+        function appendNumber(num) {
+            if (resetNext || expression === '0' || expression === 'Error') {
+                expression = num;
+                resetNext = false;
+            } else {
+                expression += num;
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal() {
+            if (resetNext || expression === 'Error') {
+                expression = '0.';
+                resetNext = false;
+                updateDisplay();
+                return;
+            }
+            const parts = expression.split(/[\+\-\*\/\(\)]/);
+            const last = parts[parts.length - 1];
+            if (!last.includes('.')) {
+                expression += '.';
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (expression === 'Error') expression = '0';
+            if (resetNext) resetNext = false;
+
+            const lastChar = expression.slice(-1);
+            const asciiOp = op === '÷' ? '/' : op === '×' ? '*' : op === '−' ? '-' : op;
+
+            if ('+-*/'.includes(lastChar) && asciiOp !== '-') {
+                expression = expression.slice(0, -1) + asciiOp;
+            } else {
+                expression += asciiOp;
+            }
+            updateDisplay();
+        }
+
+        function appendParen() {
+            if (resetNext || expression === 'Error') {
+                expression = '(';
+                resetNext = false;
+                updateDisplay();
+                return;
+            }
+
+            const openCount = (expression.match(/\(/g) || []).length;
+            const closeCount = (expression.match(/\)/g) || []).length;
+            const lastChar = expression.slice(-1);
+
+            if (openCount > closeCount && !'+-*/('.includes(lastChar)) {
+                expression += ')';
+            } else {
+                if (expression === '0') {
+                    expression = '(';
+                } else if ('+-*/'.includes(lastChar)) {
+                    expression += '(';
+                } else {
+                    expression += '*(';
+                }
+            }
+            updateDisplay();
+        }
+
+        function percentage() {
+            if (expression === 'Error') return;
+            try {
+                let expr = expression;
+                const openCount = (expr.match(/\(/g) || []).length;
+                const closeCount = (expr.match(/\)/g) || []).length;
+                for (let i = 0; i < openCount - closeCount; i++) {
+                    expr += ')';
+                }
+
+                const val = evaluate(expr);
+                expression = (val / 100).toString();
+                resetNext = true;
+                updateDisplay();
+            } catch (e) {
+                expression = 'Error';
+                resetNext = true;
+                updateDisplay();
+            }
+        }
+
+        function calculate() {
+            if (expression === 'Error') return;
+            try {
+                let expr = expression;
+
+                const openCount = (expr.match(/\(/g) || []).length;
+                const closeCount = (expr.match(/\)/g) || []).length;
+                for (let i = 0; i < openCount - closeCount; i++) {
+                    expr += ')';
+                }
+
+                const lastChar = expr.slice(-1);
+                if ('+-*/'.includes(lastChar)) {
+                    expr = expr.slice(0, -1);
+                }
+
+                const result = evaluate(expr);
+                expression = result.toString();
+                resetNext = true;
+                updateDisplay();
+            } catch (e) {
+                expression = 'Error';
+                resetNext = true;
+                updateDisplay();
+            }
+        }
+
+        function clearAll() {
+            expression = '0';
+            resetNext = false;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (expression === 'Error' || resetNext) {
+                expression = '0';
+                resetNext = false;
+                updateDisplay();
+                return;
+            }
+            if (expression.length === 1) {
+                expression = '0';
+            } else {
+                expression = expression.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        // Safe math expression evaluator using Shunting Yard algorithm
+        function evaluate(expr) {
+            const tokens = [];
+            let i = 0;
+            while (i < expr.length) {
+                const char = expr[i];
+                if (/\s/.test(char)) {
+                    i++;
+                } else if (char === '+' || char === '-' || char === '*' || char === '/' || char === '(' || char === ')') {
+                    tokens.push(char);
+                    i++;
+                } else if (/\d/.test(char) || char === '.') {
+                    let num = '';
+                    while (i < expr.length && (/\d/.test(expr[i]) || expr[i] === '.')) {
+                        num += expr[i];
+                        i++;
+                    }
+                    tokens.push(parseFloat(num));
+                } else {
+                    throw new Error('Invalid character');
+                }
+            }
+
+            const output = [];
+            const ops = [];
+            const precedence = { '+': 1, '-': 1, '*': 2, '/': 2 };
+
+            for (const token of tokens) {
+                if (typeof token === 'number') {
+                    output.push(token);
+                } else if (token === '(') {
+                    ops.push(token);
+                } else if (token === ')') {
+                    while (ops.length && ops[ops.length - 1] !== '(') {
+                        output.push(ops.pop());
+                    }
+                    if (ops.length === 0) throw new Error('Mismatched parentheses');
+                    ops.pop();
+                } else {
+                    while (ops.length && ops[ops.length - 1] !== '(' && precedence[ops[ops.length - 1]] >= precedence[token]) {
+                        output.push(ops.pop());
+                    }
+                    ops.push(token);
+                }
+            }
+
+            while (ops.length) {
+                const op = ops.pop();
+                if (op === '(' || op === ')') throw new Error('Mismatched parentheses');
+                output.push(op);
+            }
+
+            const stack = [];
+            for (const token of output) {
+                if (typeof token === 'number') {
+                    stack.push(token);
+                } else {
+                    const b = stack.pop();
+                    const a = stack.pop();
+                    if (a === undefined || b === undefined) throw new Error('Invalid expression');
+
+                    if (token === '+') stack.push(a + b);
+                    else if (token === '-') stack.push(a - b);
+                    else if (token === '*') stack.push(a * b);
+                    else if (token === '/') {
+                        if (b === 0) throw new Error('Division by zero');
+                        stack.push(a / b);
+                    }
+                }
+            }
+
+            if (stack.length !== 1) throw new Error('Invalid expression');
+            return Math.round(stack[0] * 100000000) / 100000000;
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+            if (e.key === '.') appendDecimal();
+            if (e.key === '+') appendOperator('+');
+            if (e.key === '-') appendOperator('-');
+            if (e.key === '*') appendOperator('*');
+            if (e.key === '/') {
+                e.preventDefault();
+                appendOperator('/');
+            }
+            if (e.key === '(' || e.key === ')') appendParen();
+            if (e.key === '%') percentage();
+            if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
+                calculate();
+            }
+            if (e.key === 'Escape') clearAll();
+            if (e.key === 'Backspace') deleteLast();
+        });
+    </script>
+</body>
+</html>
